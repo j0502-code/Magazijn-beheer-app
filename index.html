@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magazijn Beheer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 { font-size: 1.5rem; font-weight: 700; }
+
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-warn .stat-value { color: #f59e0b; }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.625rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: #2563eb; }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .btn-danger:hover { background: #dc2626; }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+
+        .btn-outline {
+            background: #fff;
+            border: 2px solid #ddd;
+            color: #374151;
+        }
+
+        .btn-outline:hover { border-color: #3b82f6; color: #3b82f6; }
+
+        .category-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .category-chip {
+            padding: 0.375rem 0.875rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            background: #fff;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .category-chip:hover { border-color: #3b82f6; }
+
+        .category-chip.active {
+            background: #3b82f6;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 0.875rem 1rem;
+            text-align: left;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover { color: #1a1a2e; }
+
+        td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td { background: #f8fafc; }
+
+        .low-stock td { background: #fef3c7; }
+        .low-stock:hover td { background: #fde68a; }
+
+        .out-of-stock td { background: #fee2e2; }
+        .out-of-stock:hover td { background: #fecaca; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-ok { background: #d1fae5; color: #065f46; }
+        .badge-low { background: #fef3c7; color: #92400e; }
+        .badge-out { background: #fee2e2; color: #991b1b; }
+
+        .badge-category {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            color: #374151;
+        }
+
+        .qty-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+
+        .qty-value {
+            min-width: 2.5rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .actions { display: flex; gap: 0.375rem; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #94a3b8;
+        }
+
+        .empty-state p { font-size: 1.1rem; margin-bottom: 1rem; }
+
+        .sort-arrow { font-size: 0.7rem; margin-left: 0.25rem; }
+
+        .table-wrapper { overflow-x: auto; }
+
+        @media (max-width: 640px) {
+            header { padding: 1rem; }
+            main { padding: 1rem; }
+            .modal { padding: 1.5rem; }
+            th, td { padding: 0.625rem 0.5rem; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Magazijn Beheer</h1>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Producten</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalStock">0</div>
+                <div class="stat-label">Totaal voorraad</div>
+            </div>
+            <div class="stat stat-warn">
+                <div class="stat-value" id="lowStockCount">0</div>
+                <div class="stat-label">Lage voorraad</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="toolbar">
+            <input type="text" class="search-input" id="searchInput" placeholder="Zoek op productnaam...">
+            <button class="btn btn-primary" onclick="openModal()">+ Product toevoegen</button>
+        </div>
+
+        <div class="category-filters" id="categoryFilters"></div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortBy('name')">Naam <span class="sort-arrow" id="sort-name"></span></th>
+                        <th onclick="sortBy('category')">Categorie <span class="sort-arrow" id="sort-category"></span></th>
+                        <th onclick="sortBy('quantity')">Voorraad <span class="sort-arrow" id="sort-quantity"></span></th>
+                        <th onclick="sortBy('minStock')">Min. voorraad <span class="sort-arrow" id="sort-minStock"></span></th>
+                        <th>Status</th>
+                        <th>Acties</th>
+                    </tr>
+                </thead>
+                <tbody id="productTable"></tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <p>Geen producten gevonden</p>
+            <button class="btn btn-primary" onclick="openModal()">Voeg je eerste product toe</button>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">Product toevoegen</h2>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="productName">Productnaam *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Categorie</label>
+                    <input type="text" id="productCategory" list="categoryList" placeholder="bijv. Elektronica, Kleding...">
+                    <datalist id="categoryList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="productQuantity">Aantal *</label>
+                    <input type="number" id="productQuantity" min="0" required value="0">
+                </div>
+                <div class="form-group">
+                    <label for="productMinStock">Minimale voorraad</label>
+                    <input type="number" id="productMinStock" min="0" value="5">
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Prijs per stuk</label>
+                    <input type="number" id="productPrice" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Annuleren</button>
+                    <button type="submit" class="btn btn-primary">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let products = JSON.parse(localStorage.getItem('magazijn_products') || '[]');
+        let sortField = 'name';
+        let sortAsc = true;
+        let activeCategory = null;
+
+        function save() {
+            localStorage.setItem('magazijn_products', JSON.stringify(products));
+        }
+
+        function getCategories() {
+            const cats = new Set(products.map(p => p.category).filter(Boolean));
+            return [...cats].sort();
+        }
+
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalStock').textContent = products.reduce((s, p) => s + p.quantity, 0);
+            const lowCount = products.filter(p => p.quantity <= p.minStock).length;
+            document.getElementById('lowStockCount').textContent = lowCount;
+        }
+
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilters');
+            const categories = getCategories();
+            if (categories.length === 0) { container.innerHTML = ''; return; }
+
+            let html = `<span class="category-chip ${!activeCategory ? 'active' : ''}" onclick="filterCategory(null)">Alles</span>`;
+            categories.forEach(cat => {
+                html += `<span class="category-chip ${activeCategory === cat ? 'active' : ''}" onclick="filterCategory('${cat.replace(/'/g, "\\'")}')">${cat}</span>`;
+            });
+            container.innerHTML = html;
+
+            const datalist = document.getElementById('categoryList');
+            datalist.innerHTML = categories.map(c => `<option value="${c}">`).join('');
+        }
+
+        function filterCategory(cat) {
+            activeCategory = cat;
+            render();
+        }
+
+        function getStatusBadge(product) {
+            if (product.quantity === 0) return '<span class="badge badge-out">Uitverkocht</span>';
+            if (product.quantity <= product.minStock) return '<span class="badge badge-low">Laag</span>';
+            return '<span class="badge badge-ok">Op voorraad</span>';
+        }
+
+        function getRowClass(product) {
+            if (product.quantity === 0) return 'out-of-stock';
+            if (product.quantity <= product.minStock) return 'low-stock';
+            return '';
+        }
+
+        function render() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = products.filter(p => {
+                const matchSearch = p.name.toLowerCase().includes(search);
+                const matchCat = !activeCategory || p.category === activeCategory;
+                return matchSearch && matchCat;
+            });
+
+            filtered.sort((a, b) => {
+                let va = a[sortField], vb = b[sortField];
+                if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            document.querySelectorAll('.sort-arrow').forEach(el => el.textContent = '');
+            const arrow = document.getElementById('sort-' + sortField);
+            if (arrow) arrow.textContent = sortAsc ? '▲' : '▼';
+
+            const tbody = document.getElementById('productTable');
+            const empty = document.getElementById('emptyState');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                tbody.parentElement.style.display = 'none';
+            } else {
+                empty.style.display = 'none';
+                tbody.parentElement.style.display = '';
+                tbody.innerHTML = filtered.map(p => `
+                    <tr class="${getRowClass(p)}">
+                        <td><strong>${esc(p.name)}</strong></td>
+                        <td>${p.category ? `<span class="badge badge-category">${esc(p.category)}</span>` : '-'}</td>
+                        <td>
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="adjustQty('${p.id}', -1)" title="Verlaag">-</button>
+                                <span class="qty-value">${p.quantity}</span>
+                                <button class="qty-btn" onclick="adjustQty('${p.id}', 1)" title="Verhoog">+</button>
+                            </div>
+                        </td>
+                        <td>${p.minStock}</td>
+                        <td>${getStatusBadge(p)}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')">Bewerken</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Verwijder</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            updateStats();
+            renderCategoryFilters();
+        }
+
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function sortBy(field) {
+            if (sortField === field) { sortAsc = !sortAsc; }
+            else { sortField = field; sortAsc = true; }
+            render();
+        }
+
+        function adjustQty(id, delta) {
+            const p = products.find(p => p.id === id);
+            if (!p) return;
+            p.quantity = Math.max(0, p.quantity + delta);
+            save();
+            render();
+        }
+
+        function openModal(product) {
+            document.getElementById('modalTitle').textContent = product ? 'Product bewerken' : 'Product toevoegen';
+            document.getElementById('editId').value = product ? product.id : '';
+            document.getElementById('productName').value = product ? product.name : '';
+            document.getElementById('productCategory').value = product ? product.category : '';
+            document.getElementById('productQuantity').value = product ? product.quantity : 0;
+            document.getElementById('productMinStock').value = product ? product.minStock : 5;
+            document.getElementById('productPrice').value = product ? (product.price || '') : '';
+            document.getElementById('modalOverlay').classList.add('open');
+            document.getElementById('productName').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            document.getElementById('productForm').reset();
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('productName').value.trim(),
+                category: document.getElementById('productCategory').value.trim(),
+                quantity: parseInt(document.getElementById('productQuantity').value) || 0,
+                minStock: parseInt(document.getElementById('productMinStock').value) || 0,
+                price: parseFloat(document.getElementById('productPrice').value) || 0,
+            };
+
+            if (id) {
+                const idx = products.findIndex(p => p.id === id);
+                if (idx !== -1) products[idx] = { ...products[idx], ...data };
+            } else {
+                data.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+                products.push(data);
+            }
+
+            save();
+            closeModal();
+            render();
+        }
+
+        function editProduct(id) {
+            const p = products.find(p => p.id === id);
+            if (p) openModal(p);
+        }
+
+        function deleteProduct(id) {
+            const p = products.find(p => p.id === id);
+            if (p && confirm(`Weet je zeker dat je "${p.name}" wilt verwijderen?`)) {
+                products = products.filter(p => p.id !== id);
+                save();
+                render();
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', render);
+
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        render();
+    </script>
+</body>
+</html>
