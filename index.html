@@ -79,6 +79,146 @@
             padding: 1.5rem;
         }
 
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #cc0000;
+        }
+
+        .dashboard-card.card-total {
+            border-left-color: #1a1a1a;
+        }
+
+        .dashboard-card.card-ok {
+            border-left-color: #2e7d32;
+        }
+
+        .dashboard-card.card-low {
+            border-left-color: #f57f17;
+        }
+
+        .dashboard-card.card-out {
+            border-left-color: #c62828;
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #999;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.1;
+        }
+
+        .card-sub {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .card-value.text-green { color: #2e7d32; }
+        .card-value.text-orange { color: #f57f17; }
+        .card-value.text-red { color: #c62828; }
+
+        /* Category overview */
+        .category-overview {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-top: 3px solid #cc0000;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .category-overview-title {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .category-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0;
+        }
+
+        .cat-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #eee;
+            border-right: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cat-info { flex: 1; }
+
+        .cat-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.125rem;
+        }
+
+        .cat-details {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .cat-qty {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            min-width: 3rem;
+            text-align: right;
+        }
+
+        .cat-bar {
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            margin-top: 0.375rem;
+            overflow: hidden;
+        }
+
+        .cat-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .cat-bar-fill.bar-green { background: #2e7d32; }
+        .cat-bar-fill.bar-orange { background: #f57f17; }
+        .cat-bar-fill.bar-red { background: #c62828; }
+
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #999;
+            margin-bottom: 0.75rem;
+        }
+
         .toolbar {
             display: flex;
             gap: 0.75rem;
@@ -361,6 +501,10 @@
             .header-title { font-size: 1.1rem; }
             .stats-bar { padding: 0.5rem 1rem; gap: 1rem; }
             main { padding: 1rem; }
+            .dashboard { grid-template-columns: 1fr 1fr; }
+            .dashboard-card { padding: 1rem; }
+            .card-value { font-size: 1.5rem; }
+            .category-overview-grid { grid-template-columns: 1fr; }
             .modal-body { padding: 1.25rem; }
             th, td { padding: 0.625rem 0.5rem; font-size: 0.85rem; }
             .logo { height: 36px; }
@@ -370,7 +514,7 @@
 <body>
     <header>
         <div class="header-top">
-            <img src="logo.png" alt="RH Brandbeveiliging" class="logo" onerror="this.style.display='none'">
+            <img src="https://www.rhbrandbeveiliging.nl/_webblocks/images/logo.png" alt="RH Brandbeveiliging" class="logo" onerror="this.style.display='none'">
             <div class="header-title">Voorraadbeheer <span>RH Brandbeveiliging</span></div>
         </div>
         <div class="stats-bar">
@@ -390,6 +534,38 @@
     </header>
 
     <main>
+        <!-- Dashboard overzicht -->
+        <div class="dashboard" id="dashboard">
+            <div class="dashboard-card card-total">
+                <div class="card-label">Totaal producten</div>
+                <div class="card-value" id="dashTotal">0</div>
+                <div class="card-sub" id="dashTotalSub">0 stuks in beheer</div>
+            </div>
+            <div class="dashboard-card card-ok">
+                <div class="card-label">Op voorraad</div>
+                <div class="card-value text-green" id="dashOk">0</div>
+                <div class="card-sub" id="dashOkSub">producten voldoende</div>
+            </div>
+            <div class="dashboard-card card-low">
+                <div class="card-label">Lage voorraad</div>
+                <div class="card-value text-orange" id="dashLow">0</div>
+                <div class="card-sub" id="dashLowSub">bijbestellen</div>
+            </div>
+            <div class="dashboard-card card-out">
+                <div class="card-label">Uitverkocht</div>
+                <div class="card-value text-red" id="dashOut">0</div>
+                <div class="card-sub" id="dashOutSub">niet op voorraad</div>
+            </div>
+        </div>
+
+        <!-- Categorie overzicht -->
+        <div class="category-overview" id="categoryOverview" style="display:none;">
+            <div class="category-overview-title">Overzicht per categorie</div>
+            <div class="category-overview-grid" id="categoryOverviewGrid"></div>
+        </div>
+
+        <div class="section-label">Producten</div>
+
         <div class="toolbar">
             <input type="text" class="search-input" id="searchInput" placeholder="Zoek op productnaam...">
             <button class="btn btn-primary" onclick="openModal()">+ Product toevoegen</button>
@@ -478,9 +654,65 @@
 
         function updateStats() {
             document.getElementById('totalProducts').textContent = products.length;
-            document.getElementById('totalStock').textContent = products.reduce((s, p) => s + p.quantity, 0);
-            const lowCount = products.filter(p => p.quantity <= p.minStock).length;
-            document.getElementById('lowStockCount').textContent = lowCount;
+            const totalStock = products.reduce((s, p) => s + p.quantity, 0);
+            document.getElementById('totalStock').textContent = totalStock;
+            const lowCount = products.filter(p => p.quantity > 0 && p.quantity <= p.minStock).length;
+            const outCount = products.filter(p => p.quantity === 0).length;
+            const okCount = products.filter(p => p.quantity > p.minStock).length;
+            document.getElementById('lowStockCount').textContent = lowCount + outCount;
+
+            document.getElementById('dashTotal').textContent = products.length;
+            document.getElementById('dashTotalSub').textContent = totalStock + ' stuks in beheer';
+            document.getElementById('dashOk').textContent = okCount;
+            document.getElementById('dashOkSub').textContent = okCount === 1 ? 'product voldoende' : 'producten voldoende';
+            document.getElementById('dashLow').textContent = lowCount;
+            document.getElementById('dashLowSub').textContent = lowCount === 1 ? 'product bijbestellen' : 'producten bijbestellen';
+            document.getElementById('dashOut').textContent = outCount;
+            document.getElementById('dashOutSub').textContent = outCount === 1 ? 'product niet op voorraad' : 'producten niet op voorraad';
+        }
+
+        function renderCategoryOverview() {
+            const container = document.getElementById('categoryOverview');
+            const grid = document.getElementById('categoryOverviewGrid');
+            const categories = getCategories();
+
+            if (categories.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = '';
+            const maxQty = Math.max(...products.map(p => p.quantity), 1);
+
+            grid.innerHTML = categories.map(cat => {
+                const catProducts = products.filter(p => p.category === cat);
+                const totalQty = catProducts.reduce((s, p) => s + p.quantity, 0);
+                const totalMin = catProducts.reduce((s, p) => s + p.minStock, 0);
+                const lowCount = catProducts.filter(p => p.quantity > 0 && p.quantity <= p.minStock).length;
+                const outCount = catProducts.filter(p => p.quantity === 0).length;
+                const pct = Math.min(100, Math.round((totalQty / (totalMin || 1)) * 100));
+
+                let barClass = 'bar-green';
+                if (pct <= 50) barClass = 'bar-orange';
+                if (pct <= 20 || outCount > 0) barClass = 'bar-red';
+
+                let statusText = catProducts.length + ' product' + (catProducts.length !== 1 ? 'en' : '');
+                if (outCount > 0) statusText += ' &middot; ' + outCount + ' uitverkocht';
+                else if (lowCount > 0) statusText += ' &middot; ' + lowCount + ' laag';
+
+                return `
+                    <div class="cat-item">
+                        <div class="cat-info">
+                            <div class="cat-name">${esc(cat)}</div>
+                            <div class="cat-details">${statusText}</div>
+                            <div class="cat-bar">
+                                <div class="cat-bar-fill ${barClass}" style="width:${pct}%"></div>
+                            </div>
+                        </div>
+                        <div class="cat-qty">${totalQty}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderCategoryFilters() {
@@ -569,6 +801,7 @@
             }
 
             updateStats();
+            renderCategoryOverview();
             renderCategoryFilters();
         }
 
